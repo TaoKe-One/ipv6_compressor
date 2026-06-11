@@ -33,6 +33,7 @@ jobs:
 
     - name: 安装依赖
       run: |
+        go mod tidy
         go mod download
 
     - name: 构建 macOS 可执行文件
