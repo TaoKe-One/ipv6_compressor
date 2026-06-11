@@ -1,0 +1,76 @@
+name: Build macOS
+
+on:
+  push:
+    branches: [ main, master ]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - target: amd64
+            os: macos-12
+          - target: arm64
+            os: macos-latest
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+
+    - name: 设置 Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: 安装依赖
+      run: |
+        go mod download
+
+    - name: 构建 macOS 可执行文件
+      run: |
+        GOOS=darwin GOARCH=${{ matrix.target }} go build -o ipv6-compressor-${{ matrix.target }} ./cmd/gui
+
+    - name: 上传构建产物
+      uses: actions/upload-artifact@v4
+      with:
+        name: ipv6-compressor-macos-${{ matrix.target }}
+        path: ipv6-compressor-${{ matrix.target }}
+
+    - name: 创建 Release (Intel)
+      if: startsWith(github.ref, 'refs/tags/') && matrix.target == 'amd64'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ipv6-compressor-amd64
+        name: IPv6 Compressor ${{ github.ref_name }}
+        body: |
+          ## IPv6 Compressor ${{ github.ref_name }}
+
+          GUI 版本 - macOS Intel
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 创建 Release (Apple Silicon)
+      if: startsWith(github.ref, 'refs/tags/') && matrix.target == 'arm64'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ipv6-compressor-arm64
+        name: IPv6 Compressor ${{ github.ref_name }}
+        body: |
+          ## IPv6 Compressor ${{ github.ref_name }}
+
+          GUI 版本 - macOS Apple Silicon
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
