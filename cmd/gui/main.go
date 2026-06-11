@@ -4,7 +4,7 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/themes"
 
-	"github.com/TaoKe-One/ipv6-compressor/internal/gui"
+	"github.com/TaoKe-One/ipv6_compressor/internal/gui"
 )
 
 func main() {

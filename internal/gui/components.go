@@ -7,8 +7,8 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/TaoKe-One/ipv6-compressor/internal/processor"
-	"github.com/TaoKe-One/ipv6-compressor/pkg/models"
+	"github.com/TaoKe-One/ipv6_compressor/internal/processor"
+	"github.com/TaoKe-One/ipv6_compressor/pkg/models"
 )
 
 // ColumnSelector 列选择器组件

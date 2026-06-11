@@ -1,4 +1,4 @@
-module github.com/TaoKe-One/ipv6-compressor
+module github.com/TaoKe-One/ipv6_compressor
 
 go 1.21
 

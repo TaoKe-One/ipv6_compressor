@@ -8,7 +8,7 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/TaoKe-One/ipv6-compressor/pkg/models"
+	"github.com/TaoKe-One/ipv6_compressor/pkg/models"
 )
 
 // ShowResultDialog 显示处理结果对话框

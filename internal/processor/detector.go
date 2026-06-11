@@ -1,7 +1,7 @@
 package processor
 
 import (
-	"github.com/TaoKe-One/ipv6-compressor/internal/ipv6"
+	"github.com/TaoKe-One/ipv6_compressor/internal/ipv6"
 )
 
 // ColumnInfo 列信息

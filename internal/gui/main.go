@@ -9,9 +9,9 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/TaoKe-One/ipv6-compressor/internal/ipv6"
-	"github.com/TaoKe-One/ipv6-compressor/internal/processor"
-	"github.com/TaoKe-One/ipv6-compressor/pkg/models"
+	"github.com/TaoKe-One/ipv6_compressor/internal/ipv6"
+	"github.com/TaoKe-One/ipv6_compressor/internal/processor"
+	"github.com/TaoKe-One/ipv6_compressor/pkg/models"
 )
 
 // AppState 应用状态
