@@ -38,5 +38,29 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: dist/ipv6_compressor.exe
+        name: IPv6 Compressor ${{ github.ref_name }}
+        body: |
+          ## IPv6 Compressor ${{ github.ref_name }}
+
+          下载 `ipv6_compressor.exe` 即可在 Windows 上使用，无需安装 Python。
+
+          ### 使用方法
+          ```cmd
+          ipv6_compressor.exe data.xlsx
+          ipv6_compressor.exe data.xlsx -o result.xlsx
+          ipv6_compressor.exe data.xlsx -c ip_address source_ip
+          ipv6_compressor.exe --help
+          ```
+
+          ### 功能
+          - 批量转换 Excel/CSV 中的 IPv6 地址为 RFC 5952 简写格式
+          - 自动识别包含 IPv6 地址的列
+          - 支持指定列名或正则匹配
+          - 显示处理进度
+
+          ### 系统要求
+          - Windows 7/10/11 (x64)
+        draft: false
+        prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
