@@ -153,3 +153,8 @@ func (p *CSVProcessor) generateOutputPath() string {
 func (p *CSVProcessor) GetFilePath() string {
 	return p.filePath
 }
+
+// Close 关闭处理器（CSV 处理器无需关闭资源）
+func (p *CSVProcessor) Close() error {
+	return nil
+}

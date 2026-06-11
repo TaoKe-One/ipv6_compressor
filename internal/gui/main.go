@@ -106,7 +106,7 @@ func createMainContent() *fyne.Container {
 		container.NewHSplit(leftPanel, rightPanel),
 	)
 
-	return container.NewScroll(mainContainer)
+	return mainContainer
 }
 
 // createDropArea 创建拖拽区域
@@ -263,7 +263,7 @@ func processFile(selectedCols []string) {
 		)
 
 		if err != nil {
-			appState.window.QueueUpdate(func() {
+			appState.window.Canvas().QueueUpdate(func() {
 				dialog.ShowError(err, appState.window)
 				appState.isProcessing = false
 				appState.startBtn.Enable()
@@ -287,7 +287,7 @@ func processFile(selectedCols []string) {
 
 	err := appState.currentFile.Save(outputPath)
 	if err != nil {
-		appState.window.QueueUpdate(func() {
+		appState.window.Canvas().QueueUpdate(func() {
 			dialog.ShowError(err, appState.window)
 			appState.isProcessing = false
 			appState.startBtn.Enable()
@@ -308,7 +308,7 @@ func processFile(selectedCols []string) {
 	}
 
 	// 更新 UI
-	appState.window.QueueUpdate(func() {
+	appState.window.Canvas().QueueUpdate(func() {
 		appState.isProcessing = false
 		appState.startBtn.Enable()
 		appState.progressBar.SetValue(1.0)
