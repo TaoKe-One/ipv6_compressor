@@ -46,7 +46,7 @@ jobs:
         name: ipv6-compressor-macos-${{ matrix.target }}
         path: ipv6-compressor-${{ matrix.target }}
 
-    - name: 创建 Release (Intel)
+    - name: 创建 Release (Tag触发 - Intel)
       if: startsWith(github.ref, 'refs/tags/') && matrix.target == 'amd64'
       uses: softprops/action-gh-release@v1
       with:
@@ -61,7 +61,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: 创建 Release (Apple Silicon)
+    - name: 创建 Release (Tag触发 - Apple Silicon)
       if: startsWith(github.ref, 'refs/tags/') && matrix.target == 'arm64'
       uses: softprops/action-gh-release@v1
       with:
@@ -73,5 +73,35 @@ jobs:
           GUI 版本 - macOS Apple Silicon
         draft: false
         prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 创建 Pre-release (Main分支)
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push' && matrix.target == 'amd64'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          ipv6-compressor-amd64
+          ipv6-compressor-arm64
+        name: IPv6 Compressor (Pre-release)
+        tag_name: v2.0.1-pre
+        body: |
+          ## IPv6 Compressor Pre-release
+
+          这是来自 main 分支的最新构建（自动生成）
+
+          **构建时间**: ${{ github.event.head_commit.timestamp }}
+          **提交**: ${{ github.event.head_commit.message }}
+
+          ### 功能
+          - 拖拽 Excel/CSV 文件
+          - 自动识别 IPv6 列
+          - 列选择器
+          - 实时进度显示
+
+          ⚠️ 这是预发布版本，可能包含未测试的功能
+        draft: false
+        prerelease: true
+        generate_release_notes: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
