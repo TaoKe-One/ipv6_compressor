@@ -28,7 +28,7 @@ jobs:
         pyinstaller --onefile --name ipv6_compressor --add-data "ipv6_compressor.py;." ipv6_compressor.py
 
     - name: 上传构建产物
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ipv6_compressor-windows
         path: dist/ipv6_compressor.exe
