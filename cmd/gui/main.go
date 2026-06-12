@@ -42,7 +42,7 @@ func main() {
 		w.Close()
 	})
 
-	gui.LoadUI(w)
+	gui.LoadUI(w, a)
 
 	w.ShowAndRun()
 }

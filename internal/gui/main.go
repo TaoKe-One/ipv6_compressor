@@ -30,6 +30,7 @@ type AppState struct {
 	processMode   ipv6pkg.ProcessMode
 
 	// UI 引用
+	app           fyne.App
 	window        fyne.Window
 	fileInfoPanel *FileInfoPanel
 	columnSelector *ColumnSelector
@@ -48,8 +49,9 @@ var appState = &AppState{
 }
 
 // LoadUI 加载主界面
-func LoadUI(w fyne.Window) {
+func LoadUI(w fyne.Window, a fyne.App) {
 	appState.window = w
+	appState.app = a
 
 	// 创建 UI 组件
 	appState.fileInfoPanel = NewFileInfoPanel()
@@ -152,36 +154,26 @@ func createDropArea() *fyne.Container {
 
 // showFilePicker 显示文件选择器
 func showFilePicker() {
-	// 创建文件过滤器 - 只显示支持的文件类型
-	filter := NewFileExtensionFilter([]string{".xlsx", ".xls", ".csv"})
+	// 创建自定义文件选择器（可调整大小）
+	picker := NewFilePicker(appState.window, appState.app, func(filePath string) {
+		loadFile(filePath)
+		// 记住本次使用的目录
+		appState.lastDirPath = filepath.Dir(filePath)
+	})
 
-	// 显示文件打开对话框
-	fd := dialog.NewFileOpen(
-		func(reader fyne.URIReadCloser, err error) {
-			if err != nil || reader == nil {
-				return
+	// 设置文件过滤器 - 只显示支持的文件类型
+	picker.SetFilter(func(name string) bool {
+		ext := filepath.Ext(name)
+		ext = strings.ToLower(ext)
+		for _, validExt := range []string{".xlsx", ".xls", ".csv"} {
+			if ext == validExt {
+				return true
 			}
-			defer reader.Close()
+		}
+		return false
+	})
 
-			filePath := reader.URI().Path()
-			loadFile(filePath)
-
-			// 记住本次使用的目录
-			appState.lastDirPath = filepath.Dir(filePath)
-		},
-		appState.window,
-	)
-
-	// 设置文件过滤器
-	fd.SetFilter(filter)
-	// 设置确认按钮文本
-	fd.SetConfirmText("选择")
-	// 设置取消按钮文本
-	fd.SetDismissText("取消")
-
-	// 设置对话框大小，使其更大更易用
-	fd.Resize(fyne.NewSize(700, 500))
-	fd.Show()
+	picker.Show()
 }
 
 // FileExtensionFilter 文件扩展名过滤器
@@ -214,21 +206,24 @@ func (f *FileExtensionFilter) Matches(uri fyne.URI) bool {
 
 // showOutputPicker 显示输出文件选择器
 func showOutputPicker() {
-	fd := dialog.NewFileSave(func(writer fyne.URIWriteCloser, err error) {
-		if err != nil || writer == nil {
-			return
-		}
-		defer writer.Close()
-
-		appState.outputPath = writer.URI().Path()
+	// 创建自定义文件夹选择器（可调整大小）
+	picker := NewFilePicker(appState.window, appState.app, func(filePath string) {
+		// 用户选择了文件，直接使用
+		appState.outputPath = filePath
 		if appState.outputEntry != nil {
 			appState.outputEntry.SetText(appState.outputPath)
 		}
-	}, appState.window)
+	})
 
-	// 设置对话框大小，使其更大更易用
-	fd.Resize(fyne.NewSize(700, 500))
-	fd.Show()
+	// 设置文件过滤器 - 允许所有文件
+	picker.SetFilter(func(name string) bool {
+		return true
+	})
+
+	// 修改标题为"选择输出文件"
+	picker.window.SetTitle("选择输出文件")
+
+	picker.Show()
 }
 
 // generateOutputPath 生成默认输出路径（与输入文件同目录）
