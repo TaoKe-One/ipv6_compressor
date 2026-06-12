@@ -19,28 +19,18 @@ jobs:
             goos: windows
             goarch: amd64
             output: ipv6-compressor.exe
-          - target: windows-386
-            os: windows-latest
-            goos: windows
-            goarch: 386
-            output: ipv6-compressor-32bit.exe
           - target: windows-arm64
             os: windows-latest
             goos: windows
             goarch: arm64
             output: ipv6-compressor-arm64.exe
 
-          # Linux
+          # Linux (amd64 only - CGO cross-compile issues with ARM)
           - target: linux-amd64
             os: ubuntu-latest
             goos: linux
             goarch: amd64
             output: ipv6-compressor-linux-amd64
-          - target: linux-arm64
-            os: ubuntu-latest
-            goos: linux
-            goarch: arm64
-            output: ipv6-compressor-linux-arm64
 
           # macOS
           - target: macos-amd64
@@ -94,10 +84,8 @@ jobs:
       with:
         files: |
           ipv6-compressor.exe
-          ipv6-compressor-32bit.exe
           ipv6-compressor-arm64.exe
           ipv6-compressor-linux-amd64
-          ipv6-compressor-linux-arm64
           ipv6-compressor-macos-amd64
           ipv6-compressor-macos-arm64
         name: IPv6 Compressor ${{ github.ref_name }}
@@ -111,10 +99,8 @@ jobs:
           | 平台 | 架构 | 文件名 |
           |------|------|--------|
           | Windows | x64 (64位) | ipv6-compressor.exe |
-          | Windows | x86 (32位) | ipv6-compressor-32bit.exe |
           | Windows | ARM64 | ipv6-compressor-arm64.exe |
           | Linux | x64 (64位) | ipv6-compressor-linux-amd64 |
-          | Linux | ARM64 | ipv6-compressor-linux-arm64 |
           | macOS | Intel (x64) | ipv6-compressor-macos-amd64 |
           | macOS | Apple Silicon (ARM64) | ipv6-compressor-macos-arm64 |
 
@@ -138,8 +124,8 @@ jobs:
 
           ### 系统要求
 
-          - Windows 10/11 (x64, x86, ARM64)
-          - Linux (x64, ARM64) with glibc
+          - Windows 10/11 (x64, ARM64)
+          - Linux (x64) with glibc
           - macOS 10.15+ (Intel, Apple Silicon)
 
           ### 更新日志
