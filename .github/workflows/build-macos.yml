@@ -98,7 +98,7 @@ jobs:
           ipv6-compressor-amd64
           ipv6-compressor-arm64
         name: IPv6 Compressor (Pre-release)
-        tag_name: v2.0.1-pre
+        tag_name: v2.1.0-pre
         body: |
           ## IPv6 Compressor Pre-release
 

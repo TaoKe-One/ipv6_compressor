@@ -66,7 +66,7 @@ jobs:
       with:
         files: ipv6-compressor.exe
         name: IPv6 Compressor (Pre-release)
-        tag_name: v2.0.1-pre
+        tag_name: v2.1.0-pre
         body: |
           ## IPv6 Compressor Pre-release
 
@@ -80,6 +80,7 @@ jobs:
           - 自动识别 IPv6 列
           - 列选择器
           - 实时进度显示
+          - 支持 IPv6 压缩 (RFC 5952) 和扩展 (完整格式) 两种模式
 
           ⚠️ 这是预发布版本，可能包含未测试的功能
         draft: false
