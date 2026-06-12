@@ -61,7 +61,6 @@ func LoadUI(w fyne.Window) {
 	content := createMainContent()
 
 	w.SetContent(content)
-	w.Resize(fyne.NewSize(800, 600))
 	w.CenterOnScreen()
 
 	// 设置文件拖拽处理
