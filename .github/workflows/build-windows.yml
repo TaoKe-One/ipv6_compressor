@@ -65,7 +65,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: ipv6-compressor.exe
-        name: IPv6 Compressor (Pre-release)
+        name: IPv6 Compressor v2.1.0 (Pre-release)
         tag_name: v2.1.0-pre
         body: |
           ## IPv6 Compressor Pre-release
