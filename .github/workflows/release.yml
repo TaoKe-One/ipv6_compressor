@@ -13,19 +13,14 @@ jobs:
     strategy:
       matrix:
         include:
-          # Windows
+          # Windows x64 only (ARM64 cross-compile has issues)
           - target: windows-amd64
             os: windows-latest
             goos: windows
             goarch: amd64
             output: ipv6-compressor.exe
-          - target: windows-arm64
-            os: windows-latest
-            goos: windows
-            goarch: arm64
-            output: ipv6-compressor-arm64.exe
 
-          # Linux (amd64 only - CGO cross-compile issues with ARM)
+          # Linux x64 only
           - target: linux-amd64
             os: ubuntu-latest
             goos: linux
@@ -91,7 +86,6 @@ jobs:
       with:
         files: |
           ipv6-compressor.exe
-          ipv6-compressor-arm64.exe
           ipv6-compressor-linux-amd64
           ipv6-compressor-macos-amd64
           ipv6-compressor-macos-arm64
@@ -106,7 +100,6 @@ jobs:
           | 平台 | 架构 | 文件名 |
           |------|------|--------|
           | Windows | x64 (64位) | ipv6-compressor.exe |
-          | Windows | ARM64 | ipv6-compressor-arm64.exe |
           | Linux | x64 (64位) | ipv6-compressor-linux-amd64 |
           | macOS | Intel (x64) | ipv6-compressor-macos-amd64 |
           | macOS | Apple Silicon (ARM64) | ipv6-compressor-macos-arm64 |
@@ -126,12 +119,12 @@ jobs:
 
           1. 下载对应平台的可执行文件
           2. Windows: 直接运行 `.exe` 文件
-          3. Linux: 添加执行权限 `chmod +x ipv6-compressor-*` 后运行
-          4. macOS: 打开 `ipv6-compressor-*` 文件
+          3. Linux: 添加执行权限 `chmod +x ipv6-compressor-linux-amd64` 后运行
+          4. macOS: 打开 `ipv6-compressor-macos-*` 文件
 
           ### 系统要求
 
-          - Windows 10/11 (x64, ARM64)
+          - Windows 10/11 (x64)
           - Linux (x64) with glibc
           - macOS 10.15+ (Intel, Apple Silicon)
 
@@ -154,3 +147,4 @@ jobs:
         generate_release_notes: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
