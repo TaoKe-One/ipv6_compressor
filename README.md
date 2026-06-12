@@ -23,7 +23,6 @@ IPv6 地址批量处理工具的 GUI 版本，支持 Excel/CSV 文件中 IPv6 �
 |------|------|--------|
 | Windows | x64 (64位) | ipv6-compressor.exe |
 | Linux | x64 (64位) | ipv6-compressor-linux-amd64 |
-| macOS | Intel (x64) | ipv6-compressor-macos-amd64 |
 | macOS | Apple Silicon (ARM64) | ipv6-compressor-macos-arm64 |
 
 ## 使用方法
@@ -93,8 +92,8 @@ fyne-cross windows -arch amd64 -app-id com.taokeone.ipv6compressor
 # 构建 Linux 版本
 fyne-cross linux -arch amd64
 
-# 构建 macOS 版本
-fyne-cross darwin -arch amd64,arm64
+# 构建 macOS 版本 (Apple Silicon)
+fyne-cross darwin -arch arm64
 ```
 
 ## 技术栈
