@@ -64,6 +64,7 @@ jobs:
 
     - name: 生成版本号
       id: version
+      shell: bash
       run: |
         # 获取 commit 数量作为 build 号
         BUILD_NUMBER=$(git rev-list --count HEAD)
@@ -107,6 +108,7 @@ jobs:
 
     - name: 生成版本号
       id: version
+      shell: bash
       run: |
         BUILD_NUMBER=$(git rev-list --count HEAD)
         COMMIT_HASH=$(git rev-parse --short HEAD)
