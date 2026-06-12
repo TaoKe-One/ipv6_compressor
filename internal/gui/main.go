@@ -2,6 +2,8 @@ package gui
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -33,6 +35,8 @@ type AppState struct {
 	progressBar   *ProgressBar
 	statusBar     *StatusBar
 	startBtn      *widget.Button
+	outputEntry   *widget.Entry
+	lastDirPath   string  // 记住上次使用的目录
 }
 
 // appState 全局应用状态
@@ -106,10 +110,12 @@ func createMainContent() *fyne.Container {
 
 	// 输出路径区域
 	outputEntry := widget.NewEntry()
-	outputEntry.SetPlaceHolder("默认: 原文件名_compressed.扩展名")
+	outputEntry.SetPlaceHolder("默认: 原文件同目录/原文件名_processed.扩展名")
 	outputEntry.OnChanged = func(s string) {
 		appState.outputPath = s
 	}
+	// 保存引用以便后续更新
+	appState.outputEntry = outputEntry
 
 	outputGroup := container.NewBorder(
 		nil, nil,
@@ -146,15 +152,62 @@ func createDropArea() *fyne.Container {
 
 // showFilePicker 显示文件选择器
 func showFilePicker() {
-	dialog.ShowFileOpen(func(reader fyne.URIReadCloser, err error) {
-		if err != nil || reader == nil {
-			return
-		}
-		defer reader.Close()
+	// 创建文件过滤器 - 只显示支持的文件类型
+	filter := NewFileExtensionFilter([]string{".xlsx", ".xls", ".csv"})
 
-		filePath := reader.URI().Path()
-		loadFile(filePath)
-	}, appState.window)
+	// 显示文件打开对话框
+	fd := dialog.NewFileOpen(
+		func(reader fyne.URIReadCloser, err error) {
+			if err != nil || reader == nil {
+				return
+			}
+			defer reader.Close()
+
+			filePath := reader.URI().Path()
+			loadFile(filePath)
+
+			// 记住本次使用的目录
+			appState.lastDirPath = filepath.Dir(filePath)
+		},
+		appState.window,
+	)
+
+	// 设置文件过滤器
+	fd.SetFilter(filter)
+	// 设置确认按钮文本
+	fd.SetConfirmText("选择")
+	// 设置取消按钮文本
+	fd.SetDismissText("取消")
+
+	fd.Show()
+}
+
+// FileExtensionFilter 文件扩展名过滤器
+type FileExtensionFilter struct {
+	extensions []string
+}
+
+// NewFileExtensionFilter 创建文件扩展名过滤器
+func NewFileExtensionFilter(extensions []string) *FileExtensionFilter {
+	return &FileExtensionFilter{extensions: extensions}
+}
+
+// Matches 实现 storage.FileFilter 接口
+func (f *FileExtensionFilter) Matches(uri fyne.URI) bool {
+	path := uri.Path()
+	ext := filepath.Ext(path)
+	ext = strings.ToLower(ext)
+
+	for _, validExt := range f.extensions {
+		if ext == validExt {
+			return true
+		}
+	}
+	// 如果没有扩展名，也允许选择（可能是目录或其他情况）
+	if ext == "" {
+		return true
+	}
+	return false
 }
 
 // showOutputPicker 显示输出文件选择器
@@ -166,7 +219,27 @@ func showOutputPicker() {
 		defer writer.Close()
 
 		appState.outputPath = writer.URI().Path()
+		if appState.outputEntry != nil {
+			appState.outputEntry.SetText(appState.outputPath)
+		}
 	}, appState.window)
+}
+
+// generateOutputPath 生成默认输出路径（与输入文件同目录）
+func generateOutputPath(inputPath string, fileType models.FileType) string {
+	dir := filepath.Dir(inputPath)
+	filename := filepath.Base(inputPath)
+	ext := filepath.Ext(filename)
+	nameWithoutExt := strings.TrimSuffix(filename, ext)
+
+	// 根据处理模式生成后缀
+	suffix := "_compressed"
+	if appState.processMode == ipv6pkg.ModeExpand {
+		suffix = "_expanded"
+	}
+
+	outputName := nameWithoutExt + suffix + ext
+	return filepath.Join(dir, outputName)
 }
 
 // loadFile 加载文件
@@ -184,11 +257,26 @@ func loadFile(filePath string) {
 	switch fileType {
 	case models.FileTypeExcel:
 		proc, err = processor.NewExcelProcessor(filePath)
+		// 如果 Excel 打开失败，尝试作为 CSV 处理
+		if err != nil {
+			appState.statusBar.SetText(fmt.Sprintf("Excel 打开失败，尝试作为 CSV 处理..."))
+			proc, err = processor.NewCSVProcessor(filePath)
+			if err != nil {
+				dialog.ShowError(fmt.Errorf("无法打开文件（既不是有效的 Excel 也不是 CSV）: %w", err), appState.window)
+				return
+			}
+			fileType = models.FileTypeCSV
+		}
 	case models.FileTypeCSV:
 		proc, err = processor.NewCSVProcessor(filePath)
 	default:
-		dialog.ShowError(fmt.Errorf("不支持的文件类型"), appState.window)
-		return
+		// 未知文件类型，尝试 CSV
+		proc, err = processor.NewCSVProcessor(filePath)
+		if err != nil {
+			dialog.ShowError(fmt.Errorf("不支持的文件类型: %w", err), appState.window)
+			return
+		}
+		fileType = models.FileTypeCSV
 	}
 
 	if err != nil {
@@ -199,6 +287,13 @@ func loadFile(filePath string) {
 	appState.currentFile = proc
 	appState.fileType = fileType
 	appState.statusText = fmt.Sprintf("已加载: %s", filePath)
+
+	// 设置默认输出路径（同目录下）
+	defaultOutputPath := generateOutputPath(filePath, fileType)
+	appState.outputPath = defaultOutputPath
+	if appState.outputEntry != nil {
+		appState.outputEntry.SetText(defaultOutputPath)
+	}
 
 	// 更新文件信息
 	appState.fileInfoPanel.Update(
@@ -215,32 +310,40 @@ func loadFile(filePath string) {
 	appState.startBtn.Enable()
 
 	// 更新状态
-	appState.statusBar.SetText(fmt.Sprintf("已加载 %s，检测到 %d 个 IPv6 列",
-		fileType.String(), len(appState.columns)))
+	appState.statusBar.SetText(fmt.Sprintf("已加载 %s (%d 行, %d 列)，选中 %d 个列进行处理",
+		fileType.String(), proc.GetRowCount(), proc.GetColumnCount(), len(appState.selectedCols)))
 }
 
 // detectColumns 检测包含 IPv6 的列
 func detectColumns() {
 	rows := appState.currentFile.GetRows()
 
-	// 检测列（采样1000行，30%阈值）
-	appState.columns = processor.DetectIPv6Columns(rows, 1000, 30)
+	// 检测列（采样1000行，降低阈值到5%，更敏感）
+	appState.columns = processor.DetectIPv6Columns(rows, 1000, 5)
 
 	// 创建列选择器
 	if appState.columnSelector != nil {
 		// 移除旧的
 	}
 
-	// 默认选中 IPv6 列
+	// 自动选中包含 IPv6 的列
 	for _, col := range appState.columns {
 		if col.IsIPv6 {
 			appState.selectedCols[col.Name] = true
 		}
 	}
 
-	// 更新 UI（这里简化处理，实际需要更复杂的 UI 更新）
-	appState.statusBar.SetText(fmt.Sprintf("检测到 %d 个列，%d 个包含 IPv6",
-		len(appState.columns), len(processor.FilterIPv6Columns(appState.columns))))
+	// 如果没有检测到明显的 IPv6 列，自动选择所有列进行处理
+	// 这样可以处理包含 IPv6 地址但比例较低的列
+	if len(appState.selectedCols) == 0 && len(appState.columns) > 0 {
+		for _, col := range appState.columns {
+			appState.selectedCols[col.Name] = true
+		}
+	}
+
+	// 更新 UI
+	appState.statusBar.SetText(fmt.Sprintf("检测到 %d 个列，自动选中 %d 个列进行处理",
+		len(appState.columns), len(appState.selectedCols)))
 }
 
 // startProcessing 开始处理
@@ -275,12 +378,9 @@ func processFile(selectedCols []string) {
 	totalRows := appState.currentFile.GetRowCount()
 	rowsProcessed := 0
 
-	// 更新进度
-	appState.progressBar.SetText(fmt.Sprintf("正在处理 %d 列...", len(selectedCols)))
-
 	// 处理每一列
 	for _, colName := range selectedCols {
-		appState.progressBar.SetText(fmt.Sprintf("正在处理列: %s", colName))
+		appState.progressBar.SetText(fmt.Sprintf("正在处理列: %s (%d/%d)", colName, len(appState.selectedCols), len(selectedCols)))
 
 		// 根据模式创建处理函数
 		processFunc := func(ip string) string {
@@ -293,6 +393,7 @@ func processFile(selectedCols []string) {
 		)
 
 		if err != nil {
+			appState.window.Canvas().Refresh(appState.progressBar.Container())
 			dialog.ShowError(err, appState.window)
 			appState.isProcessing = false
 			appState.startBtn.Enable()
@@ -310,11 +411,12 @@ func processFile(selectedCols []string) {
 	appState.progressBar.SetText("正在保存...")
 	outputPath := appState.outputPath
 	if outputPath == "" {
-		outputPath = appState.currentFile.GetFilePath() + "_compressed"
+		outputPath = generateOutputPath(appState.currentFile.GetFilePath(), appState.fileType)
 	}
 
 	err := appState.currentFile.Save(outputPath)
 	if err != nil {
+		appState.window.Canvas().Refresh(appState.progressBar.Container())
 		dialog.ShowError(err, appState.window)
 		appState.isProcessing = false
 		appState.startBtn.Enable()
@@ -333,11 +435,11 @@ func processFile(selectedCols []string) {
 		ModifiedColumns: selectedCols,
 	}
 
-	// 更新 UI
+	// 更新 UI - 从主线程更新
 	appState.isProcessing = false
 	appState.startBtn.Enable()
 	appState.progressBar.SetValue(1.0)
-	appState.statusBar.SetText(fmt.Sprintf("处理完成！修改了 %d 个地址", rowsProcessed))
+	appState.statusBar.SetText(fmt.Sprintf("处理完成！修改了 %d 个地址，耗时 %d ms", rowsProcessed, duration))
 
 	ShowResultDialog(appState.result, appState.window)
 }

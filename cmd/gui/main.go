@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	a := app.New()
+	a := app.NewWithID("com.taokeone.ipv6compressor")
 
 	w := a.NewWindow("IPv6 Compressor v2.0")
 	w.SetMaster()
