@@ -178,6 +178,8 @@ func showFilePicker() {
 	// 设置取消按钮文本
 	fd.SetDismissText("取消")
 
+	// 设置对话框大小，使其更大更易用
+	fd.Resize(fyne.NewSize(700, 500))
 	fd.Show()
 }
 
@@ -211,7 +213,7 @@ func (f *FileExtensionFilter) Matches(uri fyne.URI) bool {
 
 // showOutputPicker 显示输出文件选择器
 func showOutputPicker() {
-	dialog.ShowFileSave(func(writer fyne.URIWriteCloser, err error) {
+	fd := dialog.NewFileSave(func(writer fyne.URIWriteCloser, err error) {
 		if err != nil || writer == nil {
 			return
 		}
@@ -222,6 +224,10 @@ func showOutputPicker() {
 			appState.outputEntry.SetText(appState.outputPath)
 		}
 	}, appState.window)
+
+	// 设置对话框大小，使其更大更易用
+	fd.Resize(fyne.NewSize(700, 500))
+	fd.Show()
 }
 
 // generateOutputPath 生成默认输出路径（与输入文件同目录）
