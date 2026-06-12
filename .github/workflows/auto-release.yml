@@ -26,9 +26,9 @@ jobs:
             goarch: amd64
             output: ipv6-compressor-linux-amd64
 
-          # macOS Apple Silicon only
+          # macOS Apple Silicon (使用原生 ARM runner)
           - target: macos-arm64
-            os: macos-latest
+            os: macos-14
             goos: darwin
             goarch: arm64
             output: ipv6-compressor-macos-arm64
@@ -72,6 +72,16 @@ jobs:
         echo "Commit hash: $COMMIT_HASH"
         echo "Version: $VERSION"
 
+    - name: 验证系统架构
+      if: matrix.os == 'macos-14'
+      run: |
+        echo "CPU 架构:"
+        uname -m
+        echo "Go 版本:"
+        go version
+        echo "Go 目标架构:"
+        go env GOARCH
+
     - name: 构建可执行文件
       shell: bash
       env:
@@ -79,11 +89,15 @@ jobs:
         GOARCH: ${{ matrix.goarch }}
         CGO_ENABLED: 1
       run: |
+        echo "构建目标: $GOOS/$GOARCH"
         if [ "$GOOS" = "windows" ]; then
           go build -ldflags "-H windowsgui -s -w" -o ${{ matrix.output }} ./cmd/gui
         else
           go build -ldflags "-s -w" -o ${{ matrix.output }} ./cmd/gui
         fi
+        echo "构建完成，文件信息:"
+        ls -lh ${{ matrix.output }}
+        file ${{ matrix.output }}
 
     - name: 上传构建产物
       uses: actions/upload-artifact@v4

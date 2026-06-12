@@ -13,23 +13,23 @@ jobs:
     strategy:
       matrix:
         include:
-          # Windows x64 only (ARM64 cross-compile has issues)
+          # Windows x64
           - target: windows-amd64
             os: windows-latest
             goos: windows
             goarch: amd64
             output: ipv6-compressor.exe
 
-          # Linux x64 only
+          # Linux x64
           - target: linux-amd64
             os: ubuntu-latest
             goos: linux
             goarch: amd64
             output: ipv6-compressor-linux-amd64
 
-          # macOS Apple Silicon only
+          # macOS ARM64 (使用原生 ARM runner)
           - target: macos-arm64
-            os: macos-latest
+            os: macos-14
             goos: darwin
             goarch: arm64
             output: ipv6-compressor-macos-arm64
@@ -56,6 +56,16 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libgl1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxrender-dev libxxf86vm-dev
 
+    - name: 验证系统架构
+      if: matrix.os == 'macos-14'
+      run: |
+        echo "CPU 架构:"
+        uname -m
+        echo "Go 版本:"
+        go version
+        echo "Go 目标架构:"
+        go env GOARCH
+
     - name: 构建可执行文件
       shell: bash
       env:
@@ -63,11 +73,15 @@ jobs:
         GOARCH: ${{ matrix.goarch }}
         CGO_ENABLED: 1
       run: |
+        echo "构建目标: $GOOS/$GOARCH"
         if [ "$GOOS" = "windows" ]; then
-          go build -ldflags "-H windowsgui" -o ${{ matrix.output }} ./cmd/gui
+          go build -ldflags "-H windowsgui -s -w" -o ${{ matrix.output }} ./cmd/gui
         else
-          go build -o ${{ matrix.output }} ./cmd/gui
+          go build -ldflags "-s -w" -o ${{ matrix.output }} ./cmd/gui
         fi
+        echo "构建完成，文件信息:"
+        ls -lh ${{ matrix.output }}
+        file ${{ matrix.output }}
 
     - name: 上传构建产物
       uses: actions/upload-artifact@v4
@@ -129,13 +143,13 @@ jobs:
           1. 下载对应平台的可执行文件
           2. Windows: 直接运行 `.exe` 文件
           3. Linux: 添加执行权限 `chmod +x ipv6-compressor-linux-amd64` 后运行
-          4. macOS: 打开 `ipv6-compressor-macos-*` 文件
+          4. macOS: 打开 `ipv6-compressor-macos-arm64` 文件
 
           ### 系统要求
 
           - Windows 10/11 (x64)
           - Linux (x64) with glibc
-          - macOS 10.15+ (Intel, Apple Silicon)
+          - macOS 11+ (Apple Silicon / ARM64)
 
           ### 更新日志
 
@@ -146,6 +160,7 @@ jobs:
           - ✨ 智能输出文件命名（中文后缀：_压缩版/_扩展版）
           - ✨ 自动检测重名文件，添加序号避免覆盖
           - 🖥️ 优化 Windows 窗口大小（适配高 DPI）
+          - 🐛 修复输出文件选择器崩溃问题
 
           #### v2.1.2
           - 🐛 修复 Preferences API 错误（使用 app.NewWithID）
@@ -158,14 +173,10 @@ jobs:
           - ✨ 新增 IPv6 扩展功能（完整格式）
           - 🐛 修复 Windows 平台控制台窗口问题
           - 🐛 修复文件对话框闪退问题
-          - 🐛 修复文件拖拽功能
-          - 🔧 升级 Fyne 到 v2.7.4，改善中文显示
-          - 📦 支持多平台构建
+          - 🔧 升级 Fyne 到 v2.7.4
 
           #### v2.1.0
           - 🎉 初始 GUI 版本发布
-          - 📁 Excel/CSV 文件支持
-          - 🎯 自动 IPv6 列检测
         draft: false
         prerelease: false
         generate_release_notes: false
