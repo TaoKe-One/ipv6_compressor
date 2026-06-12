@@ -1,0 +1,163 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    strategy:
+      matrix:
+        include:
+          # Windows
+          - target: windows-amd64
+            os: windows-latest
+            goos: windows
+            goarch: amd64
+            output: ipv6-compressor.exe
+          - target: windows-386
+            os: windows-latest
+            goos: windows
+            goarch: 386
+            output: ipv6-compressor-32bit.exe
+          - target: windows-arm64
+            os: windows-latest
+            goos: windows
+            goarch: arm64
+            output: ipv6-compressor-arm64.exe
+
+          # Linux
+          - target: linux-amd64
+            os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+            output: ipv6-compressor-linux-amd64
+          - target: linux-arm64
+            os: ubuntu-latest
+            goos: linux
+            goarch: arm64
+            output: ipv6-compressor-linux-arm64
+
+          # macOS
+          - target: macos-amd64
+            os: macos-12
+            goos: darwin
+            goarch: amd64
+            output: ipv6-compressor-macos-amd64
+          - target: macos-arm64
+            os: macos-latest
+            goos: darwin
+            goarch: arm64
+            output: ipv6-compressor-macos-arm64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+
+    - name: 设置 Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: 安装依赖
+      run: |
+        go mod tidy
+        go mod download
+
+    - name: 构建可执行文件
+      env:
+        GOOS: ${{ matrix.goos }}
+        GOARCH: ${{ matrix.goarch }}
+        CGO_ENABLED: 1
+      run: |
+        if [ "$GOOS" = "windows" ]; then
+          go build -ldflags "-H windowsgui" -o ${{ matrix.output }} ./cmd/gui
+        else
+          go build -o ${{ matrix.output }} ./cmd/gui
+        fi
+
+    - name: 上传构建产物
+      uses: actions/upload-artifact@v4
+      with:
+        name: ipv6-compressor-${{ matrix.target }}
+        path: ${{ matrix.output }}
+
+    - name: 创建 Release
+      if: matrix.target == 'windows-amd64'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          ipv6-compressor.exe
+          ipv6-compressor-32bit.exe
+          ipv6-compressor-arm64.exe
+          ipv6-compressor-linux-amd64
+          ipv6-compressor-linux-arm64
+          ipv6-compressor-macos-amd64
+          ipv6-compressor-macos-arm64
+        name: IPv6 Compressor ${{ github.ref_name }}
+        body: |
+          ## IPv6 Compressor ${{ github.ref_name }}
+
+          🎉 正式版本发布
+
+          ### 下载
+
+          | 平台 | 架构 | 文件名 |
+          |------|------|--------|
+          | Windows | x64 (64位) | ipv6-compressor.exe |
+          | Windows | x86 (32位) | ipv6-compressor-32bit.exe |
+          | Windows | ARM64 | ipv6-compressor-arm64.exe |
+          | Linux | x64 (64位) | ipv6-compressor-linux-amd64 |
+          | Linux | ARM64 | ipv6-compressor-linux-arm64 |
+          | macOS | Intel (x64) | ipv6-compressor-macos-amd64 |
+          | macOS | Apple Silicon (ARM64) | ipv6-compressor-macos-arm64 |
+
+          ### 功能特性
+
+          - 🎨 现代化 GUI 界面
+          - 📁 支持 Excel (.xlsx, .xls) 和 CSV 文件
+          - 🎯 自动识别 IPv6 地址列
+          - 🔧 支持 IPv6 压缩 (RFC 5952)
+          - 📋 支持 IPv6 扩展 (完整格式)
+          - 🖱️ 拖拽文件上传
+          - 📊 实时进度显示
+          - 🌏 完整中文界面支持
+
+          ### 使用方法
+
+          1. 下载对应平台的可执行文件
+          2. Windows: 直接运行 `.exe` 文件
+          3. Linux: 添加执行权限 `chmod +x ipv6-compressor-*` 后运行
+          4. macOS: 打开 `ipv6-compressor-*` 文件
+
+          ### 系统要求
+
+          - Windows 10/11 (x64, x86, ARM64)
+          - Linux (x64, ARM64) with glibc
+          - macOS 10.15+ (Intel, Apple Silicon)
+
+          ### 更新日志
+
+          #### v2.1.1
+          - ✨ 新增 IPv6 扩展功能（完整格式）
+          - 🐛 修复 Windows 平台控制台窗口问题
+          - 🐛 修复文件对话框闪退问题
+          - 🐛 修复文件拖拽功能
+          - 🔧 升级 Fyne 到 v2.7.4，改善中文显示
+          - 📦 支持多平台构建
+
+          #### v2.1.0
+          - 🎉 初始 GUI 版本发布
+          - 📁 Excel/CSV 文件支持
+          - 🎯 自动 IPv6 列检测
+        draft: false
+        prerelease: false
+        generate_release_notes: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
