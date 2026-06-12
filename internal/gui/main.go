@@ -220,8 +220,8 @@ func showOutputPicker() {
 		return true
 	})
 
-	// 修改标题为"选择输出文件"
-	picker.window.SetTitle("选择输出文件")
+	// 设置标题为"选择输出文件"
+	picker.SetTitle("选择输出文件")
 
 	picker.Show()
 }

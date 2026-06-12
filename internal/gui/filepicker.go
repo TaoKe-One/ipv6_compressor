@@ -24,6 +24,7 @@ type FilePicker struct {
 	dirs         []string
 	files        []string
 	app          fyne.App
+	title        string
 }
 
 // NewFilePicker 创建文件选择器
@@ -41,10 +42,19 @@ func (fp *FilePicker) SetFilter(filter func(string) bool) {
 	fp.filter = filter
 }
 
+// SetTitle 设置窗口标题
+func (fp *FilePicker) SetTitle(title string) {
+	fp.title = title
+}
+
 // Show 显示文件选择器
 func (fp *FilePicker) Show() {
 	// 创建新窗口（可调整大小）
-	fp.window = fp.app.NewWindow("选择文件")
+	title := fp.title
+	if title == "" {
+		title = "选择文件"
+	}
+	fp.window = fp.app.NewWindow(title)
 	fp.window.Resize(fyne.NewSize(700, 500))
 	fp.window.CenterOnScreen()
 
