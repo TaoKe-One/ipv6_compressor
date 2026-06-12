@@ -26,12 +26,7 @@ jobs:
             goarch: amd64
             output: ipv6-compressor-linux-amd64
 
-          # macOS
-          - target: macos-amd64
-            os: macos-12
-            goos: darwin
-            goarch: amd64
-            output: ipv6-compressor-macos-amd64
+          # macOS Apple Silicon only
           - target: macos-arm64
             os: macos-latest
             goos: darwin
@@ -130,7 +125,6 @@ jobs:
         files: |
           artifacts/ipv6-compressor-windows-amd64/ipv6-compressor.exe
           artifacts/ipv6-compressor-linux-amd64/ipv6-compressor-linux-amd64
-          artifacts/ipv6-compressor-macos-amd64/ipv6-compressor-macos-amd64
           artifacts/ipv6-compressor-macos-arm64/ipv6-compressor-macos-arm64
         name: IPv6 Compressor ${{ steps.version.outputs.version }}
         body: |
@@ -149,7 +143,6 @@ jobs:
           |------|------|--------|
           | Windows | x64 (64位) | ipv6-compressor.exe |
           | Linux | x64 (64位) | ipv6-compressor-linux-amd64 |
-          | macOS | Intel (x64) | ipv6-compressor-macos-amd64 |
           | macOS | Apple Silicon (ARM64) | ipv6-compressor-macos-arm64 |
 
           ⚠️ 这是自动构建的预发布版本，可能包含未测试的功能。
