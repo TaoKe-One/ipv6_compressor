@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -109,7 +110,7 @@ func createMainContent() *fyne.Container {
 
 	// 输出路径区域
 	outputEntry := widget.NewEntry()
-	outputEntry.SetPlaceHolder("默认: 原文件同目录/原文件名_processed.扩展名")
+	outputEntry.SetPlaceHolder("默认: 原文件同目录/原文件名_压缩版.扩展名")
 	outputEntry.OnChanged = func(s string) {
 		appState.outputPath = s
 	}
@@ -238,13 +239,32 @@ func generateOutputPath(inputPath string, fileType models.FileType) string {
 	nameWithoutExt := strings.TrimSuffix(filename, ext)
 
 	// 根据处理模式生成后缀
-	suffix := "_compressed"
+	suffix := "_压缩版"
 	if appState.processMode == ipv6pkg.ModeExpand {
-		suffix = "_expanded"
+		suffix = "_扩展版"
 	}
 
+	// 检查文件是否已存在，如果存在则添加序号
 	outputName := nameWithoutExt + suffix + ext
-	return filepath.Join(dir, outputName)
+	outputPath := filepath.Join(dir, outputName)
+
+	counter := 1
+	for fileExists(outputPath) {
+		outputName = fmt.Sprintf("%s%s_%d%s", nameWithoutExt, suffix, counter, ext)
+		outputPath = filepath.Join(dir, outputName)
+		counter++
+	}
+
+	return outputPath
+}
+
+// fileExists 检查文件是否存在
+func fileExists(path string) bool {
+	info, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }
 
 // loadFile 加载文件
