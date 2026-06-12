@@ -1,4 +1,4 @@
-# IPv6 Compressor v2.1.3
+# IPv6 Compressor v2.1.4
 
 IPv6 地址批量处理工具的 GUI 版本，支持 Excel/CSV 文件中 IPv6 地址的压缩（RFC 5952）和扩展（完整格式）。
 
@@ -126,7 +126,12 @@ ipv6-compressor-v2/
 
 ## 更新日志
 
-### v2.1.3 (最新)
+### v2.1.4 (最新)
+- 🐛 修复 macOS ARM64 构建问题（使用原生 Apple Silicon runner）
+- 🐛 修复输出文件选择器崩溃问题
+- 🔧 优化工作流配置
+
+### v2.1.3
 - 🐛 修复 Windows/Linux/macOS 构建问题
 - ✨ 添加自动预发布工作流（每次 push 自动构建）
 - ✨ 自定义可调整大小的文件选择器

@@ -17,7 +17,7 @@ const (
 func main() {
 	a := app.NewWithID("com.taokeone.ipv6compressor")
 
-	w := a.NewWindow("IPv6 Compressor v2.1.3")
+	w := a.NewWindow("IPv6 Compressor v2.1.4")
 	w.SetMaster()
 
 	// 从 Preferences 恢复窗口大小，或使用默认值
