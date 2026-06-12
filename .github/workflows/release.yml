@@ -60,6 +60,12 @@ jobs:
         go mod tidy
         go mod download
 
+    - name: 安装 Linux 系统依赖
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgl1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxrender-dev libxxf86vm-dev
+
     - name: 构建可执行文件
       env:
         GOOS: ${{ matrix.goos }}
