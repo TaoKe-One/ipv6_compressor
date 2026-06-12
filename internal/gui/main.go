@@ -59,6 +59,14 @@ func LoadUI(w fyne.Window) {
 	w.SetContent(content)
 	w.Resize(fyne.NewSize(800, 600))
 	w.CenterOnScreen()
+
+	// 设置文件拖拽处理
+	w.SetOnDropped(func(pos fyne.Position, dropped []fyne.URI) {
+		if len(dropped) > 0 {
+			filePath := dropped[0].Path()
+			loadFile(filePath)
+		}
+	})
 }
 
 // createMainContent 创建主内容
@@ -146,7 +154,7 @@ func showFilePicker() {
 
 		filePath := reader.URI().Path()
 		loadFile(filePath)
-	}, nil)
+	}, appState.window)
 }
 
 // showOutputPicker 显示输出文件选择器
@@ -158,7 +166,7 @@ func showOutputPicker() {
 		defer writer.Close()
 
 		appState.outputPath = writer.URI().Path()
-	}, nil)
+	}, appState.window)
 }
 
 // loadFile 加载文件

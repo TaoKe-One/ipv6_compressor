@@ -30,7 +30,7 @@ jobs:
 
     - name: 构建 Windows 可执行文件
       run: |
-        go build -o ipv6-compressor.exe ./cmd/gui
+        go build -ldflags "-H windowsgui" -o ipv6-compressor.exe ./cmd/gui
 
     - name: 上传构建产物
       uses: actions/upload-artifact@v4
