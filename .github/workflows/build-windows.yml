@@ -54,6 +54,7 @@ jobs:
           - 自动识别 IPv6 列
           - 列选择器
           - 实时进度显示
+          - 支持 IPv6 压缩 (RFC 5952) 和扩展 (完整格式) 两种模式
         draft: false
         prerelease: false
       env:

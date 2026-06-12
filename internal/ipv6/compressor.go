@@ -1,6 +1,7 @@
 package ipv6
 
 import (
+	"fmt"
 	"net"
 	"regexp"
 	"strings"
@@ -42,4 +43,60 @@ func CompressIPv6(ipStr string) string {
 
 	// IPv6 地址压缩格式
 	return ip.String()
+}
+
+// ExpandIPv6 将 IPv6 地址展开为完整格式（8组，每组4位十六进制）
+// 例如: 2001:db8::1 → 2001:0db8:0000:0000:0000:0000:0000:0001
+func ExpandIPv6(ipStr string) string {
+	if ipStr == "" {
+		return ipStr
+	}
+
+	ipStr = strings.TrimSpace(ipStr)
+	if !IsIPv6(ipStr) {
+		return ipStr
+	}
+
+	// 使用 net.ParseIP 解析地址
+	ip := net.ParseIP(ipStr)
+	if ip == nil {
+		return ipStr
+	}
+
+	// 获取 IPv6 的 16 字节表示
+	ip = ip.To16()
+	if ip == nil {
+		return ipStr
+	}
+
+	// 将每 2 字节转换为 4 位十六进制
+	var groups []string
+	for i := 0; i < 16; i += 2 {
+		group := fmt.Sprintf("%02x%02x", ip[i], ip[i+1])
+		groups = append(groups, group)
+	}
+
+	return strings.Join(groups, ":")
+}
+
+// ProcessMode 处理模式
+type ProcessMode int
+
+const (
+	// ModeCompress 压缩模式（RFC 5952）
+	ModeCompress ProcessMode = iota
+	// ModeExpand 扩展模式（完整格式）
+	ModeExpand
+)
+
+// ProcessIPv6 根据模式处理 IPv6 地址
+func ProcessIPv6(ipStr string, mode ProcessMode) string {
+	switch mode {
+	case ModeCompress:
+		return CompressIPv6(ipStr)
+	case ModeExpand:
+		return ExpandIPv6(ipStr)
+	default:
+		return ipStr
+	}
 }

@@ -56,6 +56,13 @@ jobs:
           ## IPv6 Compressor ${{ github.ref_name }}
 
           GUI 版本 - macOS Intel
+
+          ### 功能
+          - 拖拽 Excel/CSV 文件
+          - 自动识别 IPv6 列
+          - 列选择器
+          - 实时进度显示
+          - 支持 IPv6 压缩 (RFC 5952) 和扩展 (完整格式) 两种模式
         draft: false
         prerelease: false
       env:
@@ -71,6 +78,13 @@ jobs:
           ## IPv6 Compressor ${{ github.ref_name }}
 
           GUI 版本 - macOS Apple Silicon
+
+          ### 功能
+          - 拖拽 Excel/CSV 文件
+          - 自动识别 IPv6 列
+          - 列选择器
+          - 实时进度显示
+          - 支持 IPv6 压缩 (RFC 5952) 和扩展 (完整格式) 两种模式
         draft: false
         prerelease: false
       env:
@@ -98,6 +112,7 @@ jobs:
           - 自动识别 IPv6 列
           - 列选择器
           - 实时进度显示
+          - 支持 IPv6 压缩 (RFC 5952) 和扩展 (完整格式) 两种模式
 
           ⚠️ 这是预发布版本，可能包含未测试的功能
         draft: false

@@ -9,7 +9,7 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/TaoKe-One/ipv6_compressor/internal/ipv6"
+	ipv6pkg "github.com/TaoKe-One/ipv6_compressor/internal/ipv6"
 	"github.com/TaoKe-One/ipv6_compressor/internal/processor"
 	"github.com/TaoKe-One/ipv6_compressor/pkg/models"
 )
@@ -24,6 +24,7 @@ type AppState struct {
 	isProcessing  bool
 	result        *models.ProcessingResult
 	statusText    string
+	processMode   ipv6pkg.ProcessMode
 
 	// UI 引用
 	window        fyne.Window
@@ -38,6 +39,7 @@ type AppState struct {
 var appState = &AppState{
 	selectedCols: make(map[string]bool),
 	statusText:   "准备就绪",
+	processMode:  ipv6pkg.ModeCompress, // 默认压缩模式
 }
 
 // LoadUI 加载主界面
@@ -67,12 +69,27 @@ func createMainContent() *fyne.Container {
 	// 选择文件按钮
 	selectFileBtn := widget.NewButton("选择文件", showFilePicker)
 
+	// 处理模式选择
+	modeSelect := widget.NewRadioGroup([]string{"压缩 (RFC 5952)", "扩展 (完整格式)"}, func(selected string) {
+		if selected == "压缩 (RFC 5952)" {
+			appState.processMode = ipv6pkg.ModeCompress
+		} else if selected == "扩展 (完整格式)" {
+			appState.processMode = ipv6pkg.ModeExpand
+		}
+	})
+	modeSelect.SetSelected("压缩 (RFC 5952)")
+
 	// 左侧面板
 	leftPanel := container.NewVBox(
 		dropArea,
 		selectFileBtn,
 		widget.NewSeparator(),
 		appState.fileInfoPanel.Container(),
+		widget.NewSeparator(),
+		container.NewVBox(
+			widget.NewLabel("处理模式:"),
+			modeSelect,
+		),
 		widget.NewSeparator(),
 		container.NewVBox(
 			widget.NewLabel("检测到的列 (IPv6):"),
@@ -257,9 +274,14 @@ func processFile(selectedCols []string) {
 	for _, colName := range selectedCols {
 		appState.progressBar.SetText(fmt.Sprintf("正在处理列: %s", colName))
 
+		// 根据模式创建处理函数
+		processFunc := func(ip string) string {
+			return ipv6pkg.ProcessIPv6(ip, appState.processMode)
+		}
+
 		processed, err := appState.currentFile.ProcessColumnsByName(
 			[]string{colName},
-			ipv6.CompressIPv6,
+			processFunc,
 		)
 
 		if err != nil {
